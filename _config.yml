@@ -19,6 +19,7 @@
 # in the templates via {{ site.myvariable }}.
 
 title: maiqueb Blog
+name: Miguel Duarte Barroso
 description: >- # this means to ignore newlines until "baseurl:"
   maiqueb's ramblings and views on multiple subjects.
 baseurl: "" # the subpath of your site, e.g. /blog
