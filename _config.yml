@@ -25,6 +25,7 @@ description: >- # this means to ignore newlines until "baseurl:"
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: maiqueb
+search: true
 
 # Build settings
 remote_theme: "mmistakes/minimal-mistakes"
@@ -32,4 +33,18 @@ minimal_mistakes_skin: "dark"
 
 plugins:
   - jekyll-feed
+
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: true
+      share: true
+      show_date: true
+
 
