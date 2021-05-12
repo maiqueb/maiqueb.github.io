@@ -34,6 +34,14 @@ minimal_mistakes_skin: "dark"
 plugins:
   - jekyll-feed
 
+author:
+  name: "Miguel Duarte Barroso"
+  bio:  "Just a dude."
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/maiqueb"
+
 defaults:
   # _posts
   - scope:
@@ -46,5 +54,4 @@ defaults:
       comments: true
       share: true
       show_date: true
-
 
