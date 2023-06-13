@@ -18,12 +18,14 @@ underlay will be configured using
 
 This blog post assumes you have the following software installed in your
 Kubernetes cluster:
-- KubeVirt
-- OVN-Kubernetes
-- Kubernetes-NMState
+- [KubeVirt](https://github.com/kubevirt/kubevirt)
+- [multus-cni](https://github.com/k8snetworkplumbingwg/multus-cni)
+- [OVN-Kubernetes](https://github.com/ovn-org/ovn-kubernetes/)
+- [Kubernetes-NMState](https://github.com/nmstate/kubernetes-nmstate)
 
 KubeVirt will allow you to run virtualized workloads alongside pods in the same
-cluster, OVN-Kubernetes will be the CNI implementing the network fabric for
+cluster, multus-cni will allow your workloads to have multiple network
+interfaces, OVN-Kubernetes will be the CNI implementing the network fabric for
 both the default cluster, and secondary networks, while Kubernetes-NMState will
 be responsible for configuring the physical networks in the Kubernetes nodes.
 
