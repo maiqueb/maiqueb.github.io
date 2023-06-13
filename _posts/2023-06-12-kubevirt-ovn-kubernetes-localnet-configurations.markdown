@@ -725,6 +725,7 @@ Now you can ping between the VMs in each network, plus access services on the
 underlay, as long as they are reachable via the GW IP.
 
 The VLANs and subnets must match what was configured in the previous sections:
+
 | Network Name | VLAN | Subnet           |
 | ------------ | ---- | --------------   |
 | externalvlan | 80   | 192.168.200.0/24 |
