@@ -57,8 +57,8 @@ spec:
               vlan:
                 mode: trunk
                 trunk-tags:
-                  - 10
-                  - 20
+                  - id: 10
+                  - id: 20
     ovs-db:
       external_ids:
         ovn-localnet-bridge-mappings: "physnet:breth0,tenantblue_br-localnet:ovsbr1,tenantred_br-localnet:ovsbr1"
