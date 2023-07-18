@@ -61,7 +61,7 @@ spec:
                   - id: 20
     ovs-db:
       external_ids:
-        ovn-localnet-bridge-mappings: "physnet:breth0,tenantblue:ovsbr1,tenantred:ovsbr1"
+        ovn-bridge-mappings: "physnet:breth0,tenantblue:ovsbr1,tenantred:ovsbr1"
 ```
 
 Using the `NodeNetworkConfigurationPolicy` - a Kubernetes-NMState CRD - we are
