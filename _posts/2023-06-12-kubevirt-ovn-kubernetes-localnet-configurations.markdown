@@ -59,7 +59,7 @@ spec:
                   - id: 20
     ovs-db:
       external_ids:
-        ovn-localnet-bridge-mappings: "physnet:breth0,tenantblue_br-localnet:ovsbr1,tenantred_br-localnet:ovsbr1"
+        ovn-localnet-bridge-mappings: "physnet:breth0,tenantblue:ovsbr1,tenantred:ovsbr1"
 ```
 
 Using the `NodeNetworkConfigurationPolicy` - a Kubernetes-NMState CRD - we are
@@ -83,8 +83,6 @@ Referring to the NNCP shown above, we are configuring three physical networks:
 - physnet: cluster's default north/south network. Attached to `br-ex`.
 - tenantblue: a network whose config will be shown. Attached to `ovsbr1`.
 - tenantred: a network whose config we will show. Attached to `ovsbr1`.
-
-**NOTE:** user provided networks **must** be added the `_br-localnet` suffix.
 
 After provisioning it, the network admin should ensure the policy was applied:
 ```yaml
@@ -195,7 +193,7 @@ spec:
 
 As you can see above, we are defining two networks, whose names match the OVN
 bridge mappings of the `NNCP`s defined in the previous section: `tenantblue`
-and `tenantred` - notice we had to strip the `_br-localnet` suffix.
+and `tenantred`.
 
 Also notice how each of those networks has a different VLAN, but both those
 IDs are listed in the trunk configuration on the OVS bridge port - 10 and 20.
@@ -428,7 +426,7 @@ spec:
   desiredState:
     ovs-db:
       external_ids:
-        ovn-bridge-mappings: "physnet:br-ex,externalvlan_br-localnet:br-ex,novlan_br-localnet:br-ex"
+        ovn-bridge-mappings: "physnet:br-ex,externalvlan:br-ex,novlan:br-ex"
 ```
 
 One thing to take into account is some platforms - i.e. Openshift - are really
