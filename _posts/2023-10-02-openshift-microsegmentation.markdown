@@ -63,7 +63,65 @@ The diagram below depicts the scenario explained above.
 ![underlay-network-view](../assets/ovn-k-secondary-nets-localnet-underlay-view.png 'Physical network view')
 
 ## Setting up the database
-TODO
+We assume the DB is available on the localnet network.
+
+Let's just create a new user and database, and grant access to that user to
+manipulate the database:
+```bash
+sudo -u postgres psql
+➜  ~ sudo -u postgres psql
+psql (15.4)
+Type "help" for help.
+
+postgres=# CREATE USER splinter WITH PASSWORD 'cheese';
+CREATE ROLE
+postgres=# CREATE DATABASE turtles OWNER splinter;
+CREATE DATABASE
+postgres=# grant all privileges on database turtles to splinter;
+GRANT
+postgres=# \connect turtles
+You are now connected to database "turtles" as user "postgres".
+turtles=# GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO splinter;
+GRANT
+turtles=# \q
+```
+
+### Allowing database remote access
+We also need to ensure that the database is configured to allow incoming
+connections on the secondary network. For that, we need to update the host based
+configuration of the database. Locate your postgres `pg_hba.conf` file, and
+ensure the following entry is there:
+```
+host    turtles         splinter        192.168.200.0/24	md5
+```
+
+That will allow clients (on the 192.168.200.0/24 subnet) to login to all
+databases using username and password.
+
+**NOTE:** Remember to reload / restart your DB service if you've reconfigured it
+
+### Provision the database
+Now that the database and user are created, let's provision a table and some
+data. Paste the following into a file - let's call it `data.sql`:
+```sql
+CREATE TABLE ninja_turtles (
+    user_id serial PRIMARY KEY,
+    name VARCHAR ( 50 ) UNIQUE NOT NULL,
+    email VARCHAR ( 255 ) UNIQUE NOT NULL,
+    weapon VARCHAR ( 50 ) NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT now()
+);
+
+INSERT INTO ninja_turtles(name, email, weapon) values('leonardo', 'leo@tmnt.org', 'swords');
+INSERT INTO ninja_turtles(name, email, weapon) values('donatello', 'don@tmnt.org', 'a stick');
+INSERT INTO ninja_turtles(name, email, weapon) values('michaelangello', 'mike@tmnt.org', 'nunchuks');
+INSERT INTO ninja_turtles(name, email, weapon) values('raphael', 'raph@tmnt.org', 'twin sai');
+```
+
+Finally provision the data file:
+```bash
+sudo -u postgres psql -f data.sql turtles
+```
 
 ## Creating an overlay network connected to a physical network
 The first thing we need to do is configure the underlay for our "new" network;
@@ -197,10 +255,24 @@ spec:
               #cloud-config
               password: fedora
               chpasswd: { expire: False }
+              packages:
+                - postgresql
 ```
 
 ## Restrict traffic on the secondary network
 TODO
+
+## Access the DB from the virtual machine
+```bash
+PGPASSWORD=cheese psql -U splinter -h 192.168.200.1 turtles -c 'select * from ninja_turtles'
+ user_id |      name      |     email     |  weapon  |         created_on
+---------+----------------+---------------+----------+----------------------------
+       1 | leonardo       | leo@tmnt.org  | swords   | 2023-12-04 13:53:37.004108
+       2 | donatello      | don@tmnt.org  | a stick  | 2023-12-04 13:53:37.004108
+       3 | michaelangello | mike@tmnt.org | nunchuks | 2023-12-04 13:53:37.004108
+       4 | raphael        | raph@tmnt.org | twin sai | 2023-12-04 13:53:37.004108
+(4 rows)
+```
 
 ## Conclusions
 In this blog post we have seen how the user can deploy a VM workload attached to
