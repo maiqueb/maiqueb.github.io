@@ -1,6 +1,7 @@
 ---
 title: About
 permalink: /about/
+type: page
 ---
 
 Miguel is a Principal Software Engineer for OpenShift Virtualization, working at
