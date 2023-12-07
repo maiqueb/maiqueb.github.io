@@ -31,6 +31,9 @@ search: true
 remote_theme: "mmistakes/minimal-mistakes"
 minimal_mistakes_skin: "dark"
 
+include:
+  - _pages
+
 plugins:
   - jekyll-feed
   - jekyll-include-cache
