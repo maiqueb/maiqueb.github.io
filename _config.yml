@@ -44,15 +44,15 @@ author:
       url: "https://github.com/maiqueb"
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin-in"
-      url: "linkedin.com/in/mdbarroso/en"
-  footer:
-    links:
-      - label: "GitHub"
-        icon: "fab fa-fw fa-github"
-        url: "https://github.com/maiqueb"
-      - label: "LinkedIn"
-        icon: "fab fa-fw fa-linkedin-in"
-        url: "linkedin.com/in/mdbarroso/en"
+      url: "https://linkedin.com/in/mdbarroso/en"
+footer:
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/maiqueb"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin-in"
+      url: "https://linkedin.com/in/mdbarroso/en"
 
 defaults:
   # _posts
