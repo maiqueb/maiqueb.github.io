@@ -1,3 +1,8 @@
+---
+permalink: /talks/
+title: Talks & Official blog posts
+---
+
 # Talks
 - [DevConf.CZ 2020 - KubeVirt: connect KVM-in-a-Pod to a host interface](https://www.youtube.com/watch?v=J686wUYkf_o)
 - [DevConf.CZ 2023 - KubeVirt VMs for migratable inceptionist clusters](https://www.youtube.com/watch?v=-KmyzCkuKUs)
