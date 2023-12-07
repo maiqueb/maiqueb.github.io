@@ -1,9 +1,15 @@
 ---
-layout: single
 title: About
 permalink: /about/
 ---
 
+Miguel is a Principal Software Engineer for OpenShift Virtualization, working at
+Red Hat since 2018.
 
+His main interests are SDN / NFV, functional programming, containers and
+virtualization.
 
-[jekyll-organization]: https://github.com/jekyll
+Miguel is a member of the Network Plumbing Working Group, a maintainer of
+several CNI plugins (whereabouts, macvtap), and a contributor to some others
+(ovn-kubernetes, multus).
+
