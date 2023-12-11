@@ -180,7 +180,7 @@ Now we just need to provision the workloads:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: podclient
+  name: db-adapter
   annotations:
     k8s.v1.cni.cncf.io/networks: '[
       {
@@ -188,11 +188,32 @@ metadata:
         "ips": [ "192.168.200.10/24" ]
       }
     ]'
+  labels:
+    role: db-adapter
 spec:
   containers:
-  - name: pod2
-    image: k8s.gcr.io/e2e-test-images/agnhost:2.26
-    command: ["/bin/ash", "-c", "trap : TERM INT; sleep infinity & wait"]
+  - name: db-adapter
+spec:
+  containers:
+  - name: db-adapter
+    env:
+    - name: DB_USER
+      value: splinter
+    - name: DB_PASSWORD
+      value: cheese
+    - name: DB_NAME
+      value: turtles
+    - name: DB_IP
+      value: "192.168.200.1"
+    - name: HOST
+      value: "192.168.200.10"
+    - name: PORT
+      value: "9000"
+    image: quay.io/mduarted/turtle-viewer
+    ports:
+    - name: webserver
+      protocol: TCP
+      containerPort: 9000
     securityContext:
       runAsUser: 1000
       privileged: false
@@ -210,6 +231,9 @@ metadata:
 spec:
   running: true
   template:
+    metadata:
+      labels:
+        role: web-client
     spec:
       domain:
         devices:
@@ -223,7 +247,7 @@ spec:
           interfaces:
           - name: default
             masquerade: {}
-          - name: underlay
+          - name: tenantblue-network
             bridge: {}
         machine:
           type: ""
@@ -233,7 +257,7 @@ spec:
       networks:
       - name: default
         pod: {}
-      - name: underlay
+      - name: tenantblue-network
         multus:
           networkName: tenantblue
       terminationGracePeriodSeconds: 0
@@ -272,26 +296,91 @@ PGPASSWORD=cheese psql -U splinter -h 192.168.200.1 turtles -c 'select * from ni
 ```
 
 ## Restrict traffic on the secondary network
-So far, we have access from the VM to the DB running outside Kubernetes, in the
-physical network. To illustrate the network policy scenario, we will use a more
-complex scenario: we will pretend to migrate our VM to a micro-service based
-architecture. For that, we will add a new pod to the deployment; this pod will
-expose the DB's contents via a REST API.
+So far, we have access from the VM to the DB running outside Kubernetes. To
+illustrate the network policy scenario, we will first modernize our monolithic
+VM by extracting part of its functionality (access to the database) to a
+standalone Pod. This pod will expose the DB's contents via a REST API.
 
 Thus, in essence, we will have:
 - 1 VM: accesses the DB's contents indirectly, by querying the pod over its REST
   API
 - 1 pod: DB client; exposes the DB contents over a RESTful CRUD API
 - 1 DB hosted on the physical network
-- 2 multi-network policies
+- 3 multi-network policies
   - one granting access to the TCP port 5432 (port over which the PostgreSQL DB
   is listening) in the physical network; this policy appies **only** to the pod
   - one granting access to the pod's TCP port 9000 (port where the RESTful API
-  is listening)
+  is listening); this policy will apply **only** to the VM
+  - one deny all ingress / egress traffic. If no rules match the traffic, this
+  rule is hit, and thus traffic is dropped
 
 The following diagram depicts the scenario:
 ![multi-net-policy scenario](../assets/multi-net-policy-scenario.png 'Multi-network policy scenario')
 
+To implement this use case, we will re-use the `network attachment definition`,
+NMState's `NodeNetworkConfigurationPolicy`, VM, and pod definitions available in
+[this section](#creating-an-overlay-network-connected-to-a-physical-network).
+
+We will need to provision the following `MultiNetworkPolicies` though:
+```yaml
+---
+apiVersion: k8s.cni.cncf.io/v1beta1
+kind: MultiNetworkPolicy
+metadata:
+  name: db-adapter
+  annotations:
+    k8s.v1.cni.cncf.io/policy-for: default/tenantblue
+spec:
+  podSelector:
+    matchLabels:
+      role: db-adapter
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 192.168.200.0/24
+    ports:
+    - protocol: TCP
+      port: 9000
+  egress:
+  - to:
+    - ipBlock:
+      cidr: 192.168.200.0/24
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: k8s.cni.cncf.io/v1beta1
+kind: MultiNetworkPolicy
+metadata:
+  name: web-client
+  annotations:
+    k8s.v1.cni.cncf.io/policy-for: default/tenantblue
+spec:
+  podSelector:
+    matchLabels:
+      role: web-client
+  egress:
+  - to:
+    - ipBlock:
+      cidr: 192.168.200.0/24
+    ports:
+    - protocol: TCP
+      port: 9000
+---
+apiVersion: k8s.cni.cncf.io/v1beta1
+kind: MultiNetworkPolicy
+metadata:
+  name: deny-all-by-default
+  annotations:
+    k8s.v1.cni.cncf.io/policy-for: default/tenantblue
+spec:
+  podSelector: {}
+  ingress: []
+  egress: []
+```
 
 ## Conclusions
 In this blog post we have seen how the user can deploy a VM workload attached to
