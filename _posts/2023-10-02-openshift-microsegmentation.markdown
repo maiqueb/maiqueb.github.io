@@ -259,9 +259,6 @@ spec:
                 - postgresql
 ```
 
-## Restrict traffic on the secondary network
-TODO
-
 ## Access the DB from the virtual machine
 ```bash
 PGPASSWORD=cheese psql -U splinter -h 192.168.200.1 turtles -c 'select * from ninja_turtles'
@@ -273,6 +270,28 @@ PGPASSWORD=cheese psql -U splinter -h 192.168.200.1 turtles -c 'select * from ni
        4 | raphael        | raph@tmnt.org | twin sai | 2023-12-04 13:53:37.004108
 (4 rows)
 ```
+
+## Restrict traffic on the secondary network
+So far, we have access from the VM to the DB running outside Kubernetes, in the
+physical network. To illustrate the network policy scenario, we will use a more
+complex scenario: we will pretend to migrate our VM to a micro-service based
+architecture. For that, we will add a new pod to the deployment; this pod will
+expose the DB's contents via a REST API.
+
+Thus, in essence, we will have:
+- 1 VM: accesses the DB's contents indirectly, by querying the pod over its REST
+  API
+- 1 pod: DB client; exposes the DB contents over a RESTful CRUD API
+- 1 DB hosted on the physical network
+- 2 multi-network policies
+  - one granting access to the TCP port 5432 (port over which the PostgreSQL DB
+  is listening) in the physical network; this policy appies **only** to the pod
+  - one granting access to the pod's TCP port 9000 (port where the RESTful API
+  is listening)
+
+The following diagram depicts the scenario:
+![multi-net-policy scenario](../assets/multi-net-policy-scenario.png 'Multi-network policy scenario')
+
 
 ## Conclusions
 In this blog post we have seen how the user can deploy a VM workload attached to
