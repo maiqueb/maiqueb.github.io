@@ -174,60 +174,13 @@ spec:
 **NOTE:** the `spec.config.name` of the NAD - i.e. `tenantblue` - must match the
 `localnet` attribute of the ovn bridge mapping provisioned above.
 
-Now we just need to provision the workloads:
+Now we just need to provision the VM workload:
 ```yaml
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: db-adapter
-  annotations:
-    k8s.v1.cni.cncf.io/networks: '[
-      {
-        "name": "tenantblue",
-        "ips": [ "192.168.200.10/24" ]
-      }
-    ]'
-  labels:
-    role: db-adapter
-spec:
-  containers:
-  - name: db-adapter
-spec:
-  containers:
-  - name: db-adapter
-    env:
-    - name: DB_USER
-      value: splinter
-    - name: DB_PASSWORD
-      value: cheese
-    - name: DB_NAME
-      value: turtles
-    - name: DB_IP
-      value: "192.168.200.1"
-    - name: HOST
-      value: "192.168.200.10"
-    - name: PORT
-      value: "9000"
-    image: quay.io/mduarted/turtle-viewer
-    ports:
-    - name: webserver
-      protocol: TCP
-      containerPort: 9000
-    securityContext:
-      runAsUser: 1000
-      privileged: false
-      seccompProfile:
-        type: RuntimeDefault
-      capabilities:
-        drop: ["ALL"]
-      runAsNonRoot: true
-      allowPrivilegeEscalation: false
 ---
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: vm-server
+  name: vm-workload
 spec:
   running: true
   template:
@@ -306,22 +259,71 @@ Thus, in essence, we will have:
   API
 - 1 pod: DB client; exposes the DB contents over a RESTful CRUD API
 - 1 DB hosted on the physical network
-- 3 multi-network policies
+- 2 multi-network policies
   - one granting access to the TCP port 5432 (port over which the PostgreSQL DB
-  is listening) in the physical network; this policy appies **only** to the pod
+  is listening) in the physical network **and** allowing connections from its
+  subnet to port 9000; this policy applies **only** to the pod
   - one granting access to the pod's TCP port 9000 (port where the RESTful API
   is listening); this policy will apply **only** to the VM
-  - one deny all ingress / egress traffic. If no rules match the traffic, this
-  rule is hit, and thus traffic is dropped
+
+All other traffic will be rejected.
 
 The following diagram depicts the scenario:
 ![multi-net-policy scenario](../assets/multi-net-policy-scenario.png 'Multi-network policy scenario')
 
 To implement this use case, we will re-use the `network attachment definition`,
-NMState's `NodeNetworkConfigurationPolicy`, VM, and pod definitions available in
+NMState's `NodeNetworkConfigurationPolicy`, and VM available in
 [this section](#creating-an-overlay-network-connected-to-a-physical-network).
 
-We will need to provision the following `MultiNetworkPolicies` though:
+We will need to provision the database adapter workload; for that, provision the
+following yaml:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: turtle-db-adapter
+  annotations:
+    k8s.v1.cni.cncf.io/networks: '[
+      {
+        "name": "tenantblue",
+        "ips": [ "192.168.200.10/24" ]
+      }
+    ]'
+  labels:
+    role: db-adapter
+spec:
+  containers:
+  - name: db-adapter
+    env:
+    - name: DB_USER
+      value: splinter
+    - name: DB_PASSWORD
+      value: cheese
+    - name: DB_NAME
+      value: turtles
+    - name: DB_IP
+      value: "192.168.200.1"
+    - name: HOST
+      value: "192.168.200.10"
+    - name: PORT
+      value: "9000"
+    image: quay.io/mduarted/turtle-viewer
+    ports:
+    - name: webserver
+      protocol: TCP
+      containerPort: 9000
+    securityContext:
+      runAsUser: 1000
+      privileged: false
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop: ["ALL"]
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+```
+
+We will need to provision the following `MultiNetworkPolicies`:
 ```yaml
 ---
 apiVersion: k8s.cni.cncf.io/v1beta1
@@ -362,6 +364,9 @@ spec:
   podSelector:
     matchLabels:
       role: web-client
+  policyTypes:
+  - Ingress
+  - Egress
   egress:
   - to:
     - ipBlock:
@@ -369,17 +374,53 @@ spec:
     ports:
     - protocol: TCP
       port: 9000
----
-apiVersion: k8s.cni.cncf.io/v1beta1
-kind: MultiNetworkPolicy
-metadata:
-  name: deny-all-by-default
-  annotations:
-    k8s.v1.cni.cncf.io/policy-for: default/tenantblue
-spec:
-  podSelector: {}
   ingress: []
-  egress: []
+```
+
+After provisioning the multi-network policies above, you will see the VM
+workload is no longer able to access the DB (the command below hangs):
+```bash
+[fedora@vm-workload ~]$ PGPASSWORD=cheese psql -Usplinter -h 192.168.200.1 turtles
+```
+
+But, it can access the `db-adapter` workload we've just deployed:
+```bash
+curl -H 'Content-Type: application/json' 192.168.200.10:9000/turtles | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   481  100   481    0     0   6562      0 --:--:-- --:--:-- --:--:--  6589
+{
+  "Ok": [
+    {
+      "user_id": 1,
+      "name": "leonardo",
+      "email": "leo@tmnt.org",
+      "weapon": "swords",
+      "created_on": "2023-12-12T12:46:26.455183"
+    },
+    {
+      "user_id": 2,
+      "name": "donatello",
+      "email": "don@tmnt.org",
+      "weapon": "a stick",
+      "created_on": "2023-12-12T12:46:26.457766"
+    },
+    {
+      "user_id": 3,
+      "name": "michaelangello",
+      "email": "mike@tmnt.org",
+      "weapon": "nunchuks",
+      "created_on": "2023-12-12T12:46:26.458432"
+    },
+    {
+      "user_id": 4,
+      "name": "raphael",
+      "email": "raph@tmnt.org",
+      "weapon": "twin sai",
+      "created_on": "2023-12-12T12:46:26.459101"
+    }
+  ]
+}
 ```
 
 ## Conclusions
@@ -388,5 +429,7 @@ a secondary network that requires access to a service deployed outside
 Kubernetes - in this scenario, an SQL database.
 
 We have also seen how to use network policies to restrict access in this
-secondary network, only allowing access to the database itself.
+secondary network, only granting access to the DB to selected workloads, and
+also ensuring our VM workload can only access applications on a particular port
+on the network.
 
