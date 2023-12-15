@@ -57,10 +57,10 @@ access the database deployed outside Kubernetes.
 Both VMs (the the DB) will be available on the same subnet (192.168.200.0/24).
 The diagram below depicts the scenario explained above.
 
-![overlay-network-view](../assets/ovn-k-secondary-nets-localnet-overlay-view.png 'Logical network view')
+![overlay-network-view](assets/ovn-k-secondary-nets-localnet-overlay-view.png 'Logical network view')
 
 ### Physical network perspective
-![underlay-network-view](../assets/ovn-k-secondary-nets-localnet-underlay-view.png 'Physical network view')
+![underlay-network-view](assets/ovn-k-secondary-nets-localnet-underlay-view.png 'Physical network view')
 
 ## Setting up the database
 We assume the DB is available on the localnet network.
@@ -269,7 +269,7 @@ Thus, in essence, we will have:
 All other traffic will be rejected.
 
 The following diagram depicts the scenario:
-![multi-net-policy scenario](../assets/multi-net-policy-scenario.png 'Multi-network policy scenario')
+![multi-net-policy scenario](assets/multi-net-policy-scenario.png 'Multi-network policy scenario')
 
 To implement this use case, we will re-use the `network attachment definition`,
 NMState's `NodeNetworkConfigurationPolicy`, and VM available in
