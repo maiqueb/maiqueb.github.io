@@ -13,6 +13,11 @@ title: Talks & Official blog posts
 - [FOSDEM 2025 - Free my Kubernetes network! Breaking away from the Kubernetes networking model](https://fosdem.org/2025/schedule/event/fosdem-2025-4059-free-my-kubernetes-network-breaking-away-from-the-kubernetes-networking-model/)
 - [FOSDEM 2025 - Evolving Multi-Network in Kubernetes: From Pod Spec to Dynamic Resource Allocation](https://fosdem.org/2025/schedule/event/fosdem-2025-4510-evolving-multi-network-in-kubernetes-from-pod-spec-to-dynamic-resource-allocation/)
 - [Kubecon Europe 2025 - Uncharted Waters: Dynamic Resource Allocation for Networking](https://www.youtube.com/watch?v=PgCaIyeRn6Y)
+- [FOSDEM 2026 - Weaving the fabric: EVPN overlays for multi-cluster KubeVirt](https://fosdem.org/2026/schedule/event/3BXRZM-evpn-overlays-for-multi-cluster-kubevirt/)
+- [FOSDEM 2026 - Turning Your Kubernetes Nodes into a Provide Edge Router](https://fosdem.org/2026/schedule/event/TUEQCR-openperouter_turning_your_kubernetes_nodes_into_a_provide_edge_router/)
+- [FOSDEM 2026 - Go BGP or go home: simplifying KubeVirt VM's ingress with your favorite routing protocol](https://fosdem.org/2026/schedule/event/DB8BTE-go-bgp-or-go-home/)
+- [Kubecon Europe 2026 - DRA-matically Simple: On-Demand GPUs for MLOps](https://sched.co/2CW2m)
+- [Kubecon Europe 2026 - Bridging Islands: EVPN Overlays for Multi-Cluster KubeVirt](https://sched.co/2EG0n)
 
 # Official blog posts
 - [Secondary network overlays for virtualization workloads](https://www.redhat.com/en/blog/secondary-network-overlays-virtualization-workloads)
