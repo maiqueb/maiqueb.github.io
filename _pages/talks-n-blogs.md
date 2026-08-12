@@ -23,4 +23,5 @@ title: Talks & Official blog posts
 - [Secondary network overlays for virtualization workloads](https://www.redhat.com/en/blog/secondary-network-overlays-virtualization-workloads)
 - [Physical network access with micro-segmentation](https://developers.redhat.com/learning/learn:openshift:physical-network-access-micro-segmentation/resource/resources:attach-physical-network-your-workloads-and-define-micro-segmentation)
 - [Native network segmentation for virtualization workloads](https://developers.redhat.com/articles/2025/05/01/native-network-segmentation-virtualization-workloads)
+- [Why your KubeVirt VMs can’t move between clusters - and how EVPN fixes it](https://thenewstack.io/kubevirt-evpn-vm-migration/)
 
